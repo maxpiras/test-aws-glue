@@ -20,7 +20,7 @@ def main():
     df_pp_pdr = df_pp_pdr.assign(k=df_pp_pdr['c_wkr']*df_pp_pdr['wkr']+df_pp_pdr['c_const'])
     df_pp_pdr = df_pp_pdr.assign(smc=df_pp_pdr['k']*df_pp_pdr['consumo_annuo']/100)
 
-    #df_pp_pdr.to_csv(path_to_data+'/output_pdr_'+tms+'.csv')
+    df_pp_pdr.to_csv(path_to_data+'/output_pdr_'+tms+'.csv')
     df_pp_pdr.to_csv('output_pdr_'+tms+'.csv')
     print(datetime.datetime.now().strftime("%D-%H:%M:%S"))
     print('********** ENDING **********')
