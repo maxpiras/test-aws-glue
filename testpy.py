@@ -3,6 +3,7 @@ import datetime
 
 
 def main():
+    pip install s3fs
     tms = datetime.datetime.now().strftime("%H:%M:%S")
     print('********** STARTING **********')
     print(datetime.datetime.now().strftime("%D-%H:%M:%S"))
