@@ -1,1 +1,2 @@
-print('prova py')
+def main:
+  print('prova py')
