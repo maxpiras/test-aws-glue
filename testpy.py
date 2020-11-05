@@ -1,10 +1,10 @@
-#import sys
-#import zipfile
-#zip_ref = zipfile.ZipFile('botocore_1.19.0.zip', 'r')
-#zip_ref.extractall('./tmp/packages')
-#zip_ref.close()
-#sys.path.insert(0, './tmp/packages')
-#import s3fs
+import sys
+import zipfile
+zip_ref = zipfile.ZipFile('botocore_1.19.0.zip', 'r')
+zip_ref.extractall('./tmp/packages')
+zip_ref.close()
+sys.path.insert(0, './tmp/packages')
+import s3fs
 
 import pandas as pd 
 import datetime
