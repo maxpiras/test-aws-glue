@@ -4,8 +4,8 @@
 #zip_ref.extractall('./tmp/packages')
 #zip_ref.close()
 #sys.path.insert(0, './tmp/packages')
+#import s3fs
 
-import s3fs
 import pandas as pd 
 import datetime
 
