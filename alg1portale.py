@@ -56,6 +56,7 @@ def main(start_date, end_date, tipo_calcolo, path_anagrafica_pdr, path_anagrafic
     import pandas as pd
     import datetime as dt
 
+    path_to_data = 's3://zus-qa-s3/algoritmo1/input'
     df_coef_res = pd.read_csv(path_to_data+'/profili_elaborati.csv')
     df_coef_res.columns = df_coef_res.columns.str.upper()
     df_coef_res['DATE'] = df_coef_res['DATE'].str.replace('-','')
