@@ -69,7 +69,7 @@ def main(start_date, end_date, tipo_calcolo, path_anagrafica_pdr, path_anagrafic
     df_wkr= df_wkr.rename(columns = {'GIORNO': 'DATE'})
     #print(df_coef_res)
 
-    df_rcu = pd.read_csv(path_to_data + path_anagrafica_pdr)
+    df_rcu = pd.read_csv(path_to_data + path_anagrafica_pdr, delimiter = ';')
     print('reading from ' + path_to_data + path_anagrafica_pdr)
     df_rcu.columns = df_rcu.columns.str.upper()
     #print(df_rcu)
