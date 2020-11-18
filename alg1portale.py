@@ -88,4 +88,5 @@ def main(start_date, end_date, tipo_calcolo, path_anagrafica_pdr, path_anagrafic
     df_pp_pdr = df_pp_pdr.assign(SMC=df_pp_pdr['K']*df_pp_pdr['CONSUMO_ANNUO']/100)
 
     df_pp_pdr.to_csv(filename)
+    return filename
     #print(df_pp_pdr)
