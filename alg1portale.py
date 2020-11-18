@@ -52,7 +52,7 @@ def read_wkr(start_date, end_date, tipo_calcolo, path_wkr):
     else:
         print('error')
         
-def main(start_date, end_date, tipo_calcolo, path_anagrafica_pdr, path_anagrafica_osservatori, path_wkr, filename):
+def main(start_date, end_date, tipo_calcolo, path_anagrafica_pdr, path_anagrafica_osservatori, path_wkr, path_output):
     import pandas as pd
     import datetime as dt
 
@@ -75,6 +75,7 @@ def main(start_date, end_date, tipo_calcolo, path_anagrafica_pdr, path_anagrafic
     print('reading from ' + path_to_data + path_anagrafica_pdr)
     df_rcu.columns = df_rcu.columns.str.upper()
     df_rcu = df_rcu[['PDR', 'STATION', 'PIVA', 'TRATTAMENTO', 'PROFILO', 'CONSUMO_ANNUO']]
+    df_rcu['PIVA'] = df_rcu['PIVA'].astype(str).apply(lambda x: x.zfill(11))
     #print(df_rcu)
 
     df_anagrafica_osservatori = pd.read_csv(path_to_data + path_anagrafica_osservatori)
@@ -95,7 +96,38 @@ def main(start_date, end_date, tipo_calcolo, path_anagrafica_pdr, path_anagrafic
     df_pp_pdr = df_pp_pdr.assign(K=df_pp_pdr['C_WKR']*df_pp_pdr['WKR']+df_pp_pdr['C_CONST'])
     df_pp_pdr = df_pp_pdr.assign(SMC=df_pp_pdr['K']*df_pp_pdr['CONSUMO_ANNUO']/100)
 
-    df_pp_pdr.to_csv(path_to_data + filename)
-    print('writing to ' + path_to_data + filename)
-    df_pp_pdr.info()
-    return (path_to_data + filename)
+    df_pp_pdr.to_csv(path_to_data + path_output)
+    di_piva = {"08526440154":'edison_energia', "03678410758": 'societa gruppo', "05044850823": 'societa_gruppo'}
+    df_pp_pdr['SOCIETA'] = df_pp_pdr['PIVA'].map(di_piva)
+    df_pp_pdr['SOCIETA'] = df_pp_pdr['SOCIETA'].where(~df_pp_pdr['SOCIETA'].isnull(), 'grossisti')
+    di_trattamento = {'Y': 'Y', 'M': 'GM', 'G': 'GM'}
+    df_pp_pdr['TRATTAMENTO_AGG'] = df_pp_pdr['TRATTAMENTO'].map(di_trattamento)
+    df_pp_pdr['TRATTAMENTO_AGG'] = df_pp_pdr['TRATTAMENTO_AGG'].where(~df_pp_pdr['TRATTAMENTO_AGG'].isnull(), '?')
+    
+    
+    print('writing edison energia y in ' + path_to_data + path_output + ' COUNT: ' + df_pp_pdr['PDR'].loc[(df_pp_pdr['SOCIETA'] == 'edison_energia') & (df_pp_pdr['TRATTAMENTO_AGG'] == 'Y')].count().astype(str))
+    df_pp_pdr.loc[(df_pp_pdr['SOCIETA'] == 'edison_energia') & (df_pp_pdr['TRATTAMENTO_AGG'] == 'Y')].to_csv(path_to_data + path_output + 'edison_energia_y.csv')
+    
+    print('writing edison energia gm in ' + path_to_data + path_output + ' COUNT: ' + df_pp_pdr['PDR'].loc[(df_pp_pdr['SOCIETA'] == 'edison_energia') & (df_pp_pdr['TRATTAMENTO_AGG'] == 'GM')].count().astype(str))
+    df_pp_pdr.loc[(df_pp_pdr['SOCIETA'] == 'edison_energia') & (df_pp_pdr['TRATTAMENTO_AGG'] == 'GM')].to_csv(path_to_data + path_output + 'edison_energia_gm.csv')
+    
+    print('writing societa gruppo y in ' + path_to_data + path_output + ' COUNT: ' + df_pp_pdr['PDR'].loc[(df_pp_pdr['SOCIETA'] == 'societa_gruppo') & (df_pp_pdr['TRATTAMENTO_AGG']=='GM')].count().astype(str))
+    df_pp_pdr.loc[(df_pp_pdr['SOCIETA'] == 'societa_gruppo') & (df_pp_pdr['TRATTAMENTO_AGG'] == 'Y')].to_csv(path_to_data + path_output + 'societa_gruppo_y.csv')
+    
+    print('writing societa gruppo gm in ' + path_to_data + path_output + ' COUNT: ' + df_pp_pdr['PDR'].loc[(df_pp_pdr['SOCIETA'] == 'societa_gruppo') & (df_pp_pdr['TRATTAMENTO_AGG'] == 'Y')].count().astype(str))
+    df_pp_pdr.loc[(df_pp_pdr['SOCIETA'] == 'grossisti') & (df_pp_pdr['TRATTAMENTO_AGG'] == 'GM')].to_csv(path_to_data + path_output + 'societa_gruppo_gm.csv')
+    
+    print('writing grossisti y in ' + path_to_data + path_output  + ' COUNT: ' + df_pp_pdr['PDR'].loc[(df_pp_pdr['SOCIETA'] == 'grossisti') & (df_pp_pdr['TRATTAMENTO_AGG'] == 'GM')].count().astype(str))
+    df_pp_pdr.loc[(df_pp_pdr['SOCIETA'] == 'grossisti') & (df_pp_pdr['TRATTAMENTO_AGG'] == 'Y')].to_csv(path_to_data + path_output + 'grossisti_y.csv')
+    
+    print('writing grossisti gm in ' + path_to_data + path_output + ' COUNT: ' + df_pp_pdr['PDR'].loc[(df_pp_pdr['SOCIETA'] == 'grossisti') & (df_pp_pdr['TRATTAMENTO_AGG'] == 'Y')].count().astype(str))
+    df_pp_pdr.loc[(df_pp_pdr['SOCIETA'] == 'grossisti') & (df_pp_pdr['TRATTAMENTO_AGG'] == 'GM')].to_csv(path_to_data + path_output + 'grossisti_gm.csv')
+    
+    print('writing edison energia complessivo in ' + path_to_data + path_output + ' COUNT: ' + df_pp_pdr['PDR'].count().astype(str))
+    df_pp_pdr.to_csv(path_to_data + path_output + 'complessivo.csv')
+    
+    df_pp_pdr_aggr = df_pp_pdr.groupby(['SOCIETA', 'TRATTAMENTO_AGG', 'DATE'])['SMC'].agg(SMC='sum').reset_index()
+    df_pp_pdr_aggr.to_csv(path_to_data + path_output + 'aggregato.csv')
+    
+    
+    return (path_to_data + path_output)
