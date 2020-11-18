@@ -72,6 +72,7 @@ def main(start_date, end_date, tipo_calcolo, path_anagrafica_pdr, path_anagrafic
     df_rcu = pd.read_csv(path_to_data + path_anagrafica_pdr, delimiter = ';')
     print('reading from ' + path_to_data + path_anagrafica_pdr)
     df_rcu.columns = df_rcu.columns.str.upper()
+    df_rcu = df_rcu[['PDR', 'STATION', 'PIVA', 'TRATTAMENTO', 'PROFILO', 'CONSUMO_ANNUO']]
     #print(df_rcu)
 
     df_anagrafica_osservatori = pd.read_csv(path_to_data + path_anagrafica_osservatori)
