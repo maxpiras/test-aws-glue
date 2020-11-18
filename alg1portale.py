@@ -25,6 +25,10 @@ def read_wkr(start_date, end_date, tipo_calcolo, path_wkr):
     df_calendar['TIPO_1'] = '1'
     df_calendar_wkr = df_calendar.merge(df_wkr_new, on ='KEY')[['ZONA_CLIMATICA', 'GIORNO']]
     #df_calendar_wkr.to_csv('TEST_CALENDAR.csv')
+    
+    df_wkr['TOP_PRIORITY'] = df_wkr.groupby(['ZONA_CLIMATICA', 'GIORNO'])['TIPO_PRIORITY'].transform('min')
+    df_wkr['MAX_DATA_WKR'] = df_wkr.groupby(['ZONA_CLIMATICA', 'GIORNO', 'TIPO_PRIORITY'])['DATA_WKR'].transform('max')
+    df_wkr = df_wkr.loc[df_wkr['DATA_WKR'] == df_wkr['MAX_DATA_WKR']]
 
     #CASO CONSUNTIVO
     if tipo_calcolo == 'cons':
@@ -32,25 +36,59 @@ def read_wkr(start_date, end_date, tipo_calcolo, path_wkr):
         #ESTRAZIONE E FILTRO WKR RISPETTO ALLA MAX DATA CON CONSUNTIVO
         max_data_consuntivo = df_wkr.loc[(df_wkr['TIPO'] == 'C') & (df_wkr['V_WKR'] == 'WKR_18')].groupby(['TIPO', 'V_WKR'])['GIORNO'].max().iloc[0]
         df_wkr = df_wkr.loc[(df_wkr['GIORNO'] <= max_data_consuntivo)&(df_wkr['TIPO'] == 'C') & (df_wkr['V_WKR'] == 'WKR_18')]
+        
         #MERGE CON CALENDARIO ESPLOSO WKR-GIORNO PER TAPPARE I BUCHI
         df_calendar_wkr = df_calendar_wkr.merge(df_wkr, on = ['ZONA_CLIMATICA', 'GIORNO'], how = 'left')
         df_calendar_wkr['WKR'] = df_calendar_wkr['WKR'].where(~df_calendar_wkr['WKR'].isnull(),1)
         #df_calendar_wkr.to_csv('TEST_CONS.csv')
         return df_calendar_wkr
     elif tipo_calcolo == 'prev':
-        print('prev')
+        print('prev')       
+        #ESTRAZIONE E FILTRO WKR RISPETTO ALLA MAX DATA CON I
+        max_data_prev = df_wkr.loc[(df_wkr['TIPO'] == 'I') & (df_wkr['V_WKR'] == 'WKR_11')].groupby(['TIPO', 'V_WKR'])['GIORNO'].max().iloc[0]
+        df_wkr = df_wkr.loc[(df_wkr['GIORNO'] <= max_data_prev)&(df_wkr['TIPO'] == 'I') & (df_wkr['V_WKR'] == 'WKR_11')]
+        
+        #MERGE CON CALENDARIO ESPLOSO WKR-GIORNO PER TAPPARE I BUCHI
+        df_calendar_wkr = df_calendar_wkr.merge(df_wkr, on = ['ZONA_CLIMATICA', 'GIORNO'], how = 'left')
+        df_calendar_wkr['WKR'] = df_calendar_wkr['WKR'].where(~df_calendar_wkr['WKR'].isnull(),1)
+        return df_calendar_wkr
+        #df_calendar_wkr.to_csv('TEST_CONS.csv')
     #CASO BEST
     elif tipo_calcolo == 'best':
-        df_wkr['TOP_PRIORITY'] = df_wkr.groupby(['ZONA_CLIMATICA', 'GIORNO'])['TIPO_PRIORITY'].transform('min')
-        df_wkr['MAX_DATA_WKR'] = df_wkr.groupby(['ZONA_CLIMATICA', 'GIORNO', 'TIPO_PRIORITY'])['DATA_WKR'].transform('max')
+        print('best')
         df_wkr = df_wkr.loc[(df_wkr['TIPO_PRIORITY'] == df_wkr['TOP_PRIORITY']) & (df_wkr['DATA_WKR'] == df_wkr['MAX_DATA_WKR'])]
         df_calendar_wkr = df_calendar_wkr.merge(df_wkr, on = ['ZONA_CLIMATICA', 'GIORNO'], how = 'left')
         df_calendar_wkr['WKR'] = df_calendar_wkr['WKR'].where(~df_calendar_wkr['WKR'].isnull(),1)
         df_calendar_wkr.to_csv('TEST_BEST.csv')
         return df_calendar_wkr
-        print('best')
     else:
         print('error')
+        
+def write_to_csv(path_to_data, path_output, df_pp_pdr):
+    print('writing edison energia y in ' + path_to_data + path_output + ' COUNT: ' + df_pp_pdr['PDR'].loc[(df_pp_pdr['SOCIETA'] == 'edison_energia') & (df_pp_pdr['TRATTAMENTO_AGG'] == 'Y')].count().astype(str))
+    df_pp_pdr.loc[(df_pp_pdr['SOCIETA'] == 'edison_energia') & (df_pp_pdr['TRATTAMENTO_AGG'] == 'Y')].head(250000).to_csv(path_to_data + path_output + 'edison_energia_y.csv')
+    
+    print('writing edison energia gm in ' + path_to_data + path_output + ' COUNT: ' + df_pp_pdr['PDR'].loc[(df_pp_pdr['SOCIETA'] == 'edison_energia') & (df_pp_pdr['TRATTAMENTO_AGG'] == 'GM')].count().astype(str))
+    df_pp_pdr.loc[(df_pp_pdr['SOCIETA'] == 'edison_energia') & (df_pp_pdr['TRATTAMENTO_AGG'] == 'GM')].head(250000).to_csv(path_to_data + path_output + 'edison_energia_gm.csv')
+    
+    print('writing societa gruppo y in ' + path_to_data + path_output + ' COUNT: ' + df_pp_pdr['PDR'].loc[(df_pp_pdr['SOCIETA'] == 'societa_gruppo') & (df_pp_pdr['TRATTAMENTO_AGG']=='GM')].count().astype(str))
+    df_pp_pdr.loc[(df_pp_pdr['SOCIETA'] == 'societa_gruppo') & (df_pp_pdr['TRATTAMENTO_AGG'] == 'Y')].head(250000).to_csv(path_to_data + path_output + 'societa_gruppo_y.csv')
+    
+    print('writing societa gruppo gm in ' + path_to_data + path_output + ' COUNT: ' + df_pp_pdr['PDR'].loc[(df_pp_pdr['SOCIETA'] == 'societa_gruppo') & (df_pp_pdr['TRATTAMENTO_AGG'] == 'Y')].count().astype(str))
+    df_pp_pdr.loc[(df_pp_pdr['SOCIETA'] == 'grossisti') & (df_pp_pdr['TRATTAMENTO_AGG'] == 'GM')].head(250000).to_csv(path_to_data + path_output + 'societa_gruppo_gm.csv')
+    
+    print('writing grossisti y in ' + path_to_data + path_output  + ' COUNT: ' + df_pp_pdr['PDR'].loc[(df_pp_pdr['SOCIETA'] == 'grossisti') & (df_pp_pdr['TRATTAMENTO_AGG'] == 'GM')].count().astype(str))
+    df_pp_pdr.loc[(df_pp_pdr['SOCIETA'] == 'grossisti') & (df_pp_pdr['TRATTAMENTO_AGG'] == 'Y')].head(250000).to_csv(path_to_data + path_output + 'grossisti_y.csv')
+    
+    print('writing grossisti gm in ' + path_to_data + path_output + ' COUNT: ' + df_pp_pdr['PDR'].loc[(df_pp_pdr['SOCIETA'] == 'grossisti') & (df_pp_pdr['TRATTAMENTO_AGG'] == 'Y')].count().astype(str))
+    df_pp_pdr.loc[(df_pp_pdr['SOCIETA'] == 'grossisti') & (df_pp_pdr['TRATTAMENTO_AGG'] == 'GM')].head(250000).to_csv(path_to_data + path_output + 'grossisti_gm.csv')
+    
+    print('writing edison energia complessivo in ' + path_to_data + path_output + ' COUNT: ' + df_pp_pdr['PDR'].count().astype(str))
+    df_pp_pdr.to_csv(path_to_data + path_output + 'complessivo.csv')
+    
+    df_pp_pdr_aggr = df_pp_pdr.groupby(['SOCIETA', 'TRATTAMENTO_AGG', 'DATE'])['SMC'].agg(SMC='sum').reset_index()
+    df_pp_pdr_aggr.to_csv(path_to_data + path_output + 'aggregato.csv')
+    return df_pp_pdr['PDR'].count()
         
 def main(start_date, end_date, tipo_calcolo, path_anagrafica_pdr, path_anagrafica_osservatori, path_wkr, path_output):
     import pandas as pd
@@ -97,37 +135,12 @@ def main(start_date, end_date, tipo_calcolo, path_anagrafica_pdr, path_anagrafic
     df_pp_pdr = df_pp_pdr.assign(SMC=df_pp_pdr['K']*df_pp_pdr['CONSUMO_ANNUO']/100)
 
     df_pp_pdr.to_csv(path_to_data + path_output)
-    di_piva = {"08526440154":'edison_energia', "03678410758": 'societa gruppo', "05044850823": 'societa_gruppo'}
+    di_piva = {"08526440154":'edison_energia', "03678410758": 'societa_gruppo', "05044850823": 'societa_gruppo'}
     df_pp_pdr['SOCIETA'] = df_pp_pdr['PIVA'].map(di_piva)
     df_pp_pdr['SOCIETA'] = df_pp_pdr['SOCIETA'].where(~df_pp_pdr['SOCIETA'].isnull(), 'grossisti')
     di_trattamento = {'Y': 'Y', 'M': 'GM', 'G': 'GM'}
     df_pp_pdr['TRATTAMENTO_AGG'] = df_pp_pdr['TRATTAMENTO'].map(di_trattamento)
     df_pp_pdr['TRATTAMENTO_AGG'] = df_pp_pdr['TRATTAMENTO_AGG'].where(~df_pp_pdr['TRATTAMENTO_AGG'].isnull(), '?')
     
-    
-    print('writing edison energia y in ' + path_to_data + path_output + ' COUNT: ' + df_pp_pdr['PDR'].loc[(df_pp_pdr['SOCIETA'] == 'edison_energia') & (df_pp_pdr['TRATTAMENTO_AGG'] == 'Y')].count().astype(str))
-    df_pp_pdr.loc[(df_pp_pdr['SOCIETA'] == 'edison_energia') & (df_pp_pdr['TRATTAMENTO_AGG'] == 'Y')].to_csv(path_to_data + path_output + 'edison_energia_y.csv')
-    
-    print('writing edison energia gm in ' + path_to_data + path_output + ' COUNT: ' + df_pp_pdr['PDR'].loc[(df_pp_pdr['SOCIETA'] == 'edison_energia') & (df_pp_pdr['TRATTAMENTO_AGG'] == 'GM')].count().astype(str))
-    df_pp_pdr.loc[(df_pp_pdr['SOCIETA'] == 'edison_energia') & (df_pp_pdr['TRATTAMENTO_AGG'] == 'GM')].to_csv(path_to_data + path_output + 'edison_energia_gm.csv')
-    
-    print('writing societa gruppo y in ' + path_to_data + path_output + ' COUNT: ' + df_pp_pdr['PDR'].loc[(df_pp_pdr['SOCIETA'] == 'societa_gruppo') & (df_pp_pdr['TRATTAMENTO_AGG']=='GM')].count().astype(str))
-    df_pp_pdr.loc[(df_pp_pdr['SOCIETA'] == 'societa_gruppo') & (df_pp_pdr['TRATTAMENTO_AGG'] == 'Y')].to_csv(path_to_data + path_output + 'societa_gruppo_y.csv')
-    
-    print('writing societa gruppo gm in ' + path_to_data + path_output + ' COUNT: ' + df_pp_pdr['PDR'].loc[(df_pp_pdr['SOCIETA'] == 'societa_gruppo') & (df_pp_pdr['TRATTAMENTO_AGG'] == 'Y')].count().astype(str))
-    df_pp_pdr.loc[(df_pp_pdr['SOCIETA'] == 'grossisti') & (df_pp_pdr['TRATTAMENTO_AGG'] == 'GM')].to_csv(path_to_data + path_output + 'societa_gruppo_gm.csv')
-    
-    print('writing grossisti y in ' + path_to_data + path_output  + ' COUNT: ' + df_pp_pdr['PDR'].loc[(df_pp_pdr['SOCIETA'] == 'grossisti') & (df_pp_pdr['TRATTAMENTO_AGG'] == 'GM')].count().astype(str))
-    df_pp_pdr.loc[(df_pp_pdr['SOCIETA'] == 'grossisti') & (df_pp_pdr['TRATTAMENTO_AGG'] == 'Y')].to_csv(path_to_data + path_output + 'grossisti_y.csv')
-    
-    print('writing grossisti gm in ' + path_to_data + path_output + ' COUNT: ' + df_pp_pdr['PDR'].loc[(df_pp_pdr['SOCIETA'] == 'grossisti') & (df_pp_pdr['TRATTAMENTO_AGG'] == 'Y')].count().astype(str))
-    df_pp_pdr.loc[(df_pp_pdr['SOCIETA'] == 'grossisti') & (df_pp_pdr['TRATTAMENTO_AGG'] == 'GM')].to_csv(path_to_data + path_output + 'grossisti_gm.csv')
-    
-    print('writing edison energia complessivo in ' + path_to_data + path_output + ' COUNT: ' + df_pp_pdr['PDR'].count().astype(str))
-    df_pp_pdr.to_csv(path_to_data + path_output + 'complessivo.csv')
-    
-    df_pp_pdr_aggr = df_pp_pdr.groupby(['SOCIETA', 'TRATTAMENTO_AGG', 'DATE'])['SMC'].agg(SMC='sum').reset_index()
-    df_pp_pdr_aggr.to_csv(path_to_data + path_output + 'aggregato.csv')
-    
-    
+    write_to_csv(path_to_data, path_output, df_pp_pdr)
     return (path_to_data + path_output)
