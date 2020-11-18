@@ -72,19 +72,19 @@ def main(start_date, end_date, tipo_calcolo, path_anagrafica_pdr, path_anagrafic
     df_rcu = pd.read_csv(path_to_data + path_anagrafica_pdr)
     print('reading from ' + path_to_data + path_anagrafica_pdr)
     df_rcu.columns = df_rcu.columns.str.upper()
-    df_rcu = df_rcu.rename(columns = {'STATION': 'STATION_FISICA'})
     #print(df_rcu)
 
     df_anagrafica_osservatori = pd.read_csv(path_to_data + path_anagrafica_osservatori)
     print('reading from ' + path_to_data + path_anagrafica_osservatori)
     df_anagrafica_osservatori.columns = df_anagrafica_osservatori.columns.str.upper()
+    df_anagrafica_osservatori = df_anagrafica_osservatori.loc[df_anagrafica_osservatori['STATION'] == df_anagrafica_osservatori['STATION_FISICA']]
     df_anagrafica_osservatori['ZONA_CLIMATICA'] = df_anagrafica_osservatori['ZONA_CLIMATICA'].astype(str)
     #print(df_anagrafica_osservatori)
     import datetime
     datetime.datetime.now().strftime("%D%H:%M:%S")
 
-    df_rcu['STATION_FISICA'] = df_rcu['STATION_FISICA'].astype(str)
-    df_pp_pdr = df_coef_res.merge(df_rcu,on='PROFILO').merge(df_anagrafica_osservatori,on='STATION_FISICA',how='left')
+    df_rcu['STATION'] = df_rcu['STATION'].astype(str)
+    df_pp_pdr = df_coef_res.merge(df_rcu,on='PROFILO').merge(df_anagrafica_osservatori,on='STATION',how='left')
 
     df_pp_pdr = df_pp_pdr.merge(df_wkr,on=['DATE','ZONA_CLIMATICA'],how='left')
     #df_pp_pdr = df_pp_pdr.where(~ df_pp_pdr['WKR'].isnull(),1)
