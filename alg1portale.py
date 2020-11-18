@@ -56,23 +56,23 @@ def main(start_date, end_date, tipo_calcolo, path_anagrafica_pdr, path_anagrafic
     import pandas as pd
     import datetime as dt
 
-    path_to_data = 's3://zus-qa-s3/algoritmo1/input'
-    df_coef_res = pd.read_csv(path_to_data+'/profili_elaborati.csv')
+    path_to_data = 's3://zus-qa-s3/'
+    df_coef_res = pd.read_csv(path_to_data+'algoritmo1/input/profili_elaborati.csv')
     df_coef_res.columns = df_coef_res.columns.str.upper()
     df_coef_res['DATE'] = df_coef_res['DATE'].str.replace('-','')
     df_coef_res = df_coef_res.loc[(df_coef_res['DATE'] >= start_date) & (df_coef_res['DATE'] <= end_date)]
 
-    df_wkr = read_wkr(start_date, end_date, tipo_calcolo, path_wkr)
+    df_wkr = read_wkr(start_date, end_date, tipo_calcolo, path_to_data + path_wkr)
     df_wkr.columns = df_wkr.columns.str.upper()
     df_wkr= df_wkr.rename(columns = {'GIORNO': 'DATE'})
     #print(df_coef_res)
 
-    df_rcu = pd.read_csv(path_anagrafica_pdr)
+    df_rcu = pd.read_csv(path_to_data + path_anagrafica_pdr)
     df_rcu.columns = df_rcu.columns.str.upper()
     df_rcu = df_rcu.rename(columns = {'STATION': 'STATION_FISICA'})
     #print(df_rcu)
 
-    df_anagrafica_osservatori = pd.read_csv(path_anagrafica_osservatori)
+    df_anagrafica_osservatori = pd.read_csv(path_to_data + path_anagrafica_osservatori)
     df_anagrafica_osservatori.columns = df_anagrafica_osservatori.columns.str.upper()
     df_anagrafica_osservatori['ZONA_CLIMATICA'] = df_anagrafica_osservatori['ZONA_CLIMATICA'].astype(str)
     #print(df_anagrafica_osservatori)
@@ -87,6 +87,6 @@ def main(start_date, end_date, tipo_calcolo, path_anagrafica_pdr, path_anagrafic
     df_pp_pdr = df_pp_pdr.assign(K=df_pp_pdr['C_WKR']*df_pp_pdr['WKR']+df_pp_pdr['C_CONST'])
     df_pp_pdr = df_pp_pdr.assign(SMC=df_pp_pdr['K']*df_pp_pdr['CONSUMO_ANNUO']/100)
 
-    df_pp_pdr.to_csv(filename)
-    return filename
+    df_pp_pdr.to_csv(path_to_data + filename)
+    return (path_to_data + filename)
     #print(df_pp_pdr)
