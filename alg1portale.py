@@ -60,6 +60,7 @@ def main(start_date, end_date, tipo_calcolo, path_anagrafica_pdr, path_anagrafic
     df_coef_res = pd.read_csv(path_to_data+'algoritmo1/input/profili_elaborati.csv')
     print('reading from ' + path_to_data+'algoritmo1/input/profili_elaborati.csv')
     df_coef_res.columns = df_coef_res.columns.str.upper()
+    df_coef_res = df_coef_res[['PROFILO', 'DATE', 'C_WKR', 'C_CONST']]
     df_coef_res['DATE'] = df_coef_res['DATE'].str.replace('-','')
     df_coef_res = df_coef_res.loc[(df_coef_res['DATE'] >= start_date) & (df_coef_res['DATE'] <= end_date)]
 
@@ -67,6 +68,7 @@ def main(start_date, end_date, tipo_calcolo, path_anagrafica_pdr, path_anagrafic
     print('reading from ' + path_to_data + path_wkr)
     df_wkr.columns = df_wkr.columns.str.upper()
     df_wkr= df_wkr.rename(columns = {'GIORNO': 'DATE'})
+    df_wkr = df_wkr[['ZONA_CLIMATICA', 'DATE', 'WKR']]
     #print(df_coef_res)
 
     df_rcu = pd.read_csv(path_to_data + path_anagrafica_pdr, delimiter = ';')
@@ -78,6 +80,7 @@ def main(start_date, end_date, tipo_calcolo, path_anagrafica_pdr, path_anagrafic
     df_anagrafica_osservatori = pd.read_csv(path_to_data + path_anagrafica_osservatori)
     print('reading from ' + path_to_data + path_anagrafica_osservatori)
     df_anagrafica_osservatori.columns = df_anagrafica_osservatori.columns.str.upper()
+    df_anagrafica_osservatori = df_anagrafica_osservatori[['STATION', 'STATION_FISICA', 'ZONA_CLIMATICA']]
     df_anagrafica_osservatori = df_anagrafica_osservatori.loc[df_anagrafica_osservatori['STATION'] == df_anagrafica_osservatori['STATION_FISICA']]
     df_anagrafica_osservatori['ZONA_CLIMATICA'] = df_anagrafica_osservatori['ZONA_CLIMATICA'].astype(str)
     #print(df_anagrafica_osservatori)
@@ -94,5 +97,5 @@ def main(start_date, end_date, tipo_calcolo, path_anagrafica_pdr, path_anagrafic
 
     df_pp_pdr.to_csv(path_to_data + filename)
     print('writing to ' + path_to_data + filename)
+    df_pp_pdr.info()
     return (path_to_data + filename)
-    #print(df_pp_pdr)
