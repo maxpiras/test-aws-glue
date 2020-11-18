@@ -43,7 +43,7 @@ def read_wkr(start_date, end_date, tipo_calcolo, path_wkr):
     elif tipo_calcolo == 'best':
         df_wkr['TOP_PRIORITY'] = df_wkr.groupby(['ZONA_CLIMATICA', 'GIORNO'])['TIPO_PRIORITY'].transform('min')
         df_wkr['MAX_DATA_WKR'] = df_wkr.groupby(['ZONA_CLIMATICA', 'GIORNO', 'TIPO_PRIORITY'])['DATA_WKR'].transform('max')
-        df_wkr = df_wkr.loc[df_wkr['TIPO_PRIORITY'] == df_wkr['TOP_PRIORITY']]
+        df_wkr = df_wkr.loc[(df_wkr['TIPO_PRIORITY'] == df_wkr['TOP_PRIORITY']) & (df_wkr['DATA_WKR'] == df_wkr['MAX_DATA_WKR'])]
         df_calendar_wkr = df_calendar_wkr.merge(df_wkr, on = ['ZONA_CLIMATICA', 'GIORNO'], how = 'left')
         df_calendar_wkr['WKR'] = df_calendar_wkr['WKR'].where(~df_calendar_wkr['WKR'].isnull(),1)
         df_calendar_wkr.to_csv('TEST_BEST.csv')
