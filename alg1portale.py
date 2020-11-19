@@ -29,6 +29,7 @@ def read_wkr(start_date, end_date, tipo_calcolo, path_wkr):
     df_wkr['TOP_PRIORITY'] = df_wkr.groupby(['ZONA_CLIMATICA', 'GIORNO'])['TIPO_PRIORITY'].transform('min')
     df_wkr['MAX_DATA_WKR'] = df_wkr.groupby(['ZONA_CLIMATICA', 'GIORNO', 'TIPO_PRIORITY'])['DATA_WKR'].transform('max')
     df_wkr = df_wkr.loc[df_wkr['DATA_WKR'] == df_wkr['MAX_DATA_WKR']]
+    df_wkr['ANNO_MESE'] = df_wkr['GIORNO'].astype(str).str.slice(start=0, stop=6)
 
     #CASO CONSUNTIVO
     if tipo_calcolo == 'cons':
@@ -85,9 +86,7 @@ def write_to_csv(path_to_data, path_output, df_pp_pdr):
     
     print('writing edison energia complessivo in ' + path_to_data + path_output + ' COUNT: ' + df_pp_pdr['PDR'].count().astype(str))
     df_pp_pdr.to_csv(path_to_data + path_output + 'complessivo.csv')
-    
-    df_pp_pdr_aggr = df_pp_pdr.groupby(['SOCIETA', 'TRATTAMENTO_AGG', 'DATE'])['SMC'].agg(SMC='sum').reset_index()
-    df_pp_pdr_aggr.to_csv(path_to_data + path_output + 'aggregato.csv')
+
     return df_pp_pdr['PDR'].count()
         
 def main(start_date, end_date, tipo_calcolo, path_anagrafica_pdr, path_anagrafica_osservatori, path_wkr, path_output):
@@ -95,18 +94,19 @@ def main(start_date, end_date, tipo_calcolo, path_anagrafica_pdr, path_anagrafic
     import datetime as dt
 
     path_to_data = 's3://zus-qa-s3/'
-    df_coef_res = pd.read_csv(path_to_data+'algoritmo1/input/profili_elaborati.csv')
-    print('reading from ' + path_to_data+'algoritmo1/input/profili_elaborati.csv')
+    df_coef_res = pd.read_csv(path_to_data +'elaborato/sistema/coefficienti/external/profili_elaborati.csv')
+    print('reading from ' + path_to_data +'elaborato/sistema/coefficienti/external/profili_elaborati.csv')
     df_coef_res.columns = df_coef_res.columns.str.upper()
-    df_coef_res = df_coef_res[['PROFILO', 'DATE', 'C_WKR', 'C_CONST']]
+    df_coef_res['TIPOLOGIA'] = df_coef_res['PROFILO'].str.slice(start=0, stop=1)
     df_coef_res['DATE'] = df_coef_res['DATE'].str.replace('-','')
+    df_coef_res = df_coef_res[['PROFILO', 'DATE', 'C_WKR', 'C_CONST', 'TIPOLOGIA']]
     df_coef_res = df_coef_res.loc[(df_coef_res['DATE'] >= start_date) & (df_coef_res['DATE'] <= end_date)]
 
     df_wkr = read_wkr(start_date, end_date, tipo_calcolo, path_to_data + path_wkr)
     print('reading from ' + path_to_data + path_wkr)
     df_wkr.columns = df_wkr.columns.str.upper()
     df_wkr= df_wkr.rename(columns = {'GIORNO': 'DATE'})
-    df_wkr = df_wkr[['ZONA_CLIMATICA', 'DATE', 'WKR']]
+    df_wkr = df_wkr[['ZONA_CLIMATICA', 'DATE', 'ANNO_MESE', 'WKR']]
     #print(df_coef_res)
 
     df_rcu = pd.read_csv(path_to_data + path_anagrafica_pdr, delimiter = ';')
@@ -132,7 +132,9 @@ def main(start_date, end_date, tipo_calcolo, path_anagrafica_pdr, path_anagrafic
     df_pp_pdr = df_pp_pdr.merge(df_wkr,on=['DATE','ZONA_CLIMATICA'],how='left')
     #df_pp_pdr = df_pp_pdr.where(~ df_pp_pdr['WKR'].isnull(),1)
     df_pp_pdr = df_pp_pdr.assign(K=df_pp_pdr['C_WKR']*df_pp_pdr['WKR']+df_pp_pdr['C_CONST'])
+    df_pp_pdr = df_pp_pdr.assign(K_NO_WKR=df_pp_pdr['C_WKR']*1+df_pp_pdr['C_CONST'])
     df_pp_pdr = df_pp_pdr.assign(SMC=df_pp_pdr['K']*df_pp_pdr['CONSUMO_ANNUO']/100)
+    df_pp_pdr = df_pp_pdr.assign(SMC_NO_WKR=df_pp_pdr['K_NO_WKR']*df_pp_pdr['CONSUMO_ANNUO']/100)
 
     df_pp_pdr.to_csv(path_to_data + path_output)
     di_piva = {"08526440154":'edison_energia', "03678410758": 'societa_gruppo', "05044850823": 'societa_gruppo'}
@@ -142,5 +144,9 @@ def main(start_date, end_date, tipo_calcolo, path_anagrafica_pdr, path_anagrafic
     df_pp_pdr['TRATTAMENTO_AGG'] = df_pp_pdr['TRATTAMENTO'].map(di_trattamento)
     df_pp_pdr['TRATTAMENTO_AGG'] = df_pp_pdr['TRATTAMENTO_AGG'].where(~df_pp_pdr['TRATTAMENTO_AGG'].isnull(), '?')
     
-    write_to_csv(path_to_data, path_output, df_pp_pdr)
+    #write_to_csv(path_to_data, path_output, df_pp_pdr)
+    
+    df_pp_pdr_aggr = df_pp_pdr.groupby(['SOCIETA', 'TRATTAMENTO_AGG', 'TIPOLOGIA', 'DATE', 'ANNO_MESE']).agg(SMC=pd.NamedAgg(column='SMC', aggfunc='sum'), SMC_NO_WKR=pd.NamedAgg(column='SMC_NO_WKR', aggfunc='sum'), K=pd.NamedAgg(column='K', aggfunc='sum'), K_NO_WKR=pd.NamedAgg(column='K_NO_WKR', aggfunc='sum'), CONSUMO_ANNUO=pd.NamedAgg(column='CONSUMO_ANNUO', aggfunc='sum'))
+    df_pp_pdr_aggr.to_csv(path_to_data + path_output + 'aggregato.csv')
+    
     return (path_to_data + path_output)
