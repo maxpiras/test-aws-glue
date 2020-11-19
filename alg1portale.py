@@ -29,7 +29,6 @@ def read_wkr(start_date, end_date, tipo_calcolo, path_wkr):
     df_wkr['TOP_PRIORITY'] = df_wkr.groupby(['ZONA_CLIMATICA', 'GIORNO'])['TIPO_PRIORITY'].transform('min')
     df_wkr['MAX_DATA_WKR'] = df_wkr.groupby(['ZONA_CLIMATICA', 'GIORNO', 'TIPO_PRIORITY'])['DATA_WKR'].transform('max')
     df_wkr = df_wkr.loc[df_wkr['DATA_WKR'] == df_wkr['MAX_DATA_WKR']]
-    df_wkr['ANNO_MESE'] = df_wkr['GIORNO'].astype(str).str.slice(start=0, stop=6)
 
     #CASO CONSUNTIVO
     if tipo_calcolo == 'cons':
@@ -106,7 +105,7 @@ def main(start_date, end_date, tipo_calcolo, path_anagrafica_pdr, path_anagrafic
     print('reading from ' + path_to_data + path_wkr)
     df_wkr.columns = df_wkr.columns.str.upper()
     df_wkr= df_wkr.rename(columns = {'GIORNO': 'DATE'})
-    df_wkr = df_wkr[['ZONA_CLIMATICA', 'DATE', 'ANNO_MESE', 'WKR']]
+    df_wkr = df_wkr[['ZONA_CLIMATICA', 'DATE', 'WKR']]
     #print(df_coef_res)
 
     df_rcu = pd.read_csv(path_to_data + path_anagrafica_pdr, delimiter = ';')
@@ -146,7 +145,8 @@ def main(start_date, end_date, tipo_calcolo, path_anagrafica_pdr, path_anagrafic
     
     #write_to_csv(path_to_data, path_output, df_pp_pdr)
     
-    df_pp_pdr_aggr = df_pp_pdr.groupby(['SOCIETA', 'TRATTAMENTO_AGG', 'TIPOLOGIA', 'DATE', 'ANNO_MESE']).agg(SMC=pd.NamedAgg(column='SMC', aggfunc='sum'), SMC_NO_WKR=pd.NamedAgg(column='SMC_NO_WKR', aggfunc='sum'), K=pd.NamedAgg(column='K', aggfunc='sum'), K_NO_WKR=pd.NamedAgg(column='K_NO_WKR', aggfunc='sum'), CONSUMO_ANNUO=pd.NamedAgg(column='CONSUMO_ANNUO', aggfunc='sum'))
+    df_pp_pdr_aggr = df_pp_pdr.groupby(['SOCIETA', 'TRATTAMENTO_AGG', 'TIPOLOGIA', 'DATE']).agg(SMC=pd.NamedAgg(column='SMC', aggfunc='sum'), SMC_NO_WKR=pd.NamedAgg(column='SMC_NO_WKR', aggfunc='sum'), K=pd.NamedAgg(column='K', aggfunc='sum'), K_NO_WKR=pd.NamedAgg(column='K_NO_WKR', aggfunc='sum'), CONSUMO_ANNUO=pd.NamedAgg(column='CONSUMO_ANNUO', aggfunc='sum')).reset_index()
+    df_pp_pdr_aggr['ANNO_MESE'] = df_wkr['DATE'].astype(str).str.slice(start=0, stop=6)
     df_pp_pdr_aggr.to_csv(path_to_data + path_output + 'aggregato.csv')
     
     return (path_to_data + path_output)
