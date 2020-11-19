@@ -94,8 +94,8 @@ def main(start_date, end_date, tipo_calcolo, path_anagrafica_pdr, path_anagrafic
     import datetime as dt
 
     path_to_data = 's3://zus-qa-s3/'
-    df_coef_res = pd.read_csv(path_to_data +'elaborato/sistema/coefficienti/external/profili_elaborati.csv')
-    print('reading from ' + path_to_data +'elaborato/sistema/coefficienti/external/profili_elaborati.csv')
+    df_coef_res = pd.read_csv(path_to_data +'elaborato/sistema/coefficienti/external/2020/profili_elaborati.csv')
+    print('reading from ' + path_to_data +'elaborato/sistema/coefficienti/external/2020/profili_elaborati.csv')
     df_coef_res.columns = df_coef_res.columns.str.upper()
     df_coef_res['TIPOLOGIA'] = df_coef_res['PROFILO'].str.slice(start=0, stop=1)
     df_coef_res['DATE'] = df_coef_res['DATE'].str.replace('-','')
