@@ -108,7 +108,7 @@ def main(start_date, end_date, tipo_calcolo, path_anagrafica_pdr, path_anagrafic
     df_wkr = df_wkr[['ZONA_CLIMATICA', 'DATE', 'WKR']]
     #print(df_coef_res)
 
-    df_rcu = pd.read_csv(path_to_data + path_anagrafica_pdr, delimiter = ';')
+    df_rcu = pd.read_csv(path_to_data + path_anagrafica_pdr)
     print('reading from ' + path_to_data + path_anagrafica_pdr)
     df_rcu.columns = df_rcu.columns.str.upper()
     df_rcu = df_rcu[['PDR', 'STATION', 'PIVA', 'TRATTAMENTO', 'PROFILO', 'CONSUMO_ANNUO']]
