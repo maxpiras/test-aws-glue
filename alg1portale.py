@@ -92,15 +92,20 @@ def main(start_date, end_date, tipo_calcolo, path_anagrafica_pdr, path_anagrafic
     import pandas as pd
     import datetime as dt
 
+    #BASE PATH SU S3
     path_to_data = 's3://zus-qa-s3/'
+    
+    #LETTURA PROFILI ELABORATI
     df_coef_res = pd.read_csv(path_to_data +'elaborato/sistema/coefficienti/external/2020/profili_elaborati.csv')
     print('reading from ' + path_to_data +'elaborato/sistema/coefficienti/external/2020/profili_elaborati.csv')
     df_coef_res.columns = df_coef_res.columns.str.upper()
     df_coef_res['TIPOLOGIA'] = df_coef_res['PROFILO'].str.slice(start=0, stop=1)
     df_coef_res['DATE'] = df_coef_res['DATE'].str.replace('-','')
+    df_coef_res = df_coef_res.loc[(df_coef_res['DATE'] >= start_date) & (df_coef_res['DATE'] <= end_date)]
     df_coef_res = df_coef_res[['PROFILO', 'DATE', 'C_WKR', 'C_CONST', 'TIPOLOGIA']]
     df_coef_res = df_coef_res.loc[(df_coef_res['DATE'] >= start_date) & (df_coef_res['DATE'] <= end_date)]
 
+    #LETTURA WKR
     df_wkr = read_wkr(start_date, end_date, tipo_calcolo, path_to_data + path_wkr)
     print('reading from ' + path_to_data + path_wkr)
     df_wkr.columns = df_wkr.columns.str.upper()
@@ -108,13 +113,16 @@ def main(start_date, end_date, tipo_calcolo, path_anagrafica_pdr, path_anagrafic
     df_wkr = df_wkr[['ZONA_CLIMATICA', 'DATE', 'WKR']]
     #print(df_coef_res)
 
-    df_rcu = pd.read_csv(path_to_data + path_anagrafica_pdr, delimiter=',')
+    #LETTURA ANAGRAFICA
+    df_rcu = pd.read_csv(path_to_data + path_anagrafica_pdr, delimiter = ',')
     print('reading from ' + path_to_data + path_anagrafica_pdr)
     df_rcu.columns = df_rcu.columns.str.upper()
     df_rcu = df_rcu[['PDR', 'STATION', 'PIVA', 'TRATTAMENTO', 'PROFILO', 'CONSUMO_ANNUO']]
     df_rcu['PIVA'] = df_rcu['PIVA'].astype(str).apply(lambda x: x.zfill(11))
+    df_rcu['STATION'] = df_rcu['STATION'].astype(str)
     #print(df_rcu)
 
+    #LETTURA ANAGRAFICA OSSERVATORI
     df_anagrafica_osservatori = pd.read_csv(path_to_data + path_anagrafica_osservatori)
     print('reading from ' + path_to_data + path_anagrafica_osservatori)
     df_anagrafica_osservatori.columns = df_anagrafica_osservatori.columns.str.upper()
@@ -122,14 +130,14 @@ def main(start_date, end_date, tipo_calcolo, path_anagrafica_pdr, path_anagrafic
     df_anagrafica_osservatori = df_anagrafica_osservatori.loc[df_anagrafica_osservatori['STATION'] == df_anagrafica_osservatori['STATION_FISICA']]
     df_anagrafica_osservatori['ZONA_CLIMATICA'] = df_anagrafica_osservatori['ZONA_CLIMATICA'].astype(str)
     #print(df_anagrafica_osservatori)
+    
     import datetime
     datetime.datetime.now().strftime("%D%H:%M:%S")
 
-    df_rcu['STATION'] = df_rcu['STATION'].astype(str)
+    #LIMITARE PROFILI A STARTDATE-ENDDATE
     df_pp_pdr = df_coef_res.merge(df_rcu,on='PROFILO').merge(df_anagrafica_osservatori,on='STATION',how='left')
 
     df_pp_pdr = df_pp_pdr.merge(df_wkr,on=['DATE','ZONA_CLIMATICA'],how='left')
-    #df_pp_pdr = df_pp_pdr.where(~ df_pp_pdr['WKR'].isnull(),1)
     df_pp_pdr = df_pp_pdr.assign(K=df_pp_pdr['C_WKR']*df_pp_pdr['WKR']+df_pp_pdr['C_CONST'])
     df_pp_pdr = df_pp_pdr.assign(K_NO_WKR=df_pp_pdr['C_WKR']*1+df_pp_pdr['C_CONST'])
     df_pp_pdr = df_pp_pdr.assign(SMC=df_pp_pdr['K']*df_pp_pdr['CONSUMO_ANNUO']/100)
