@@ -103,7 +103,6 @@ def main(start_date, end_date, tipo_calcolo, path_anagrafica_pdr, path_anagrafic
     df_coef_res['DATE'] = df_coef_res['DATE'].str.replace('-','')
     df_coef_res = df_coef_res.loc[(df_coef_res['DATE'] >= start_date) & (df_coef_res['DATE'] <= end_date)]
     df_coef_res = df_coef_res[['PROFILO', 'DATE', 'C_WKR', 'C_CONST', 'TIPOLOGIA']]
-    df_coef_res = df_coef_res.loc[(df_coef_res['DATE'] >= start_date) & (df_coef_res['DATE'] <= end_date)]
 
     #LETTURA WKR
     df_wkr = read_wkr(start_date, end_date, tipo_calcolo, path_to_data + path_wkr)
