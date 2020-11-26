@@ -166,7 +166,9 @@ def main(start_date, end_date, tipo_calcolo, path_anagrafica_pdr, path_anagrafic
     df_pp_pdr_aggr_grossisti = mergeDati(df_coef_res, df_rcu_grossisti, df_anagrafica_osservatori, df_wkr)
     print('computed grossisti')
     df_pp_pdr_aggr = df_pp_pdr_aggr_edison_energia.append(df_pp_pdr_aggr_societa_gruppo).append(df_pp_pdr_aggr_grossisti)
+    print('computations appended')
     
     df_pp_pdr_aggr.to_csv(path_to_data + path_output + 'aggregato.csv')
+    print('written ' + path_to_data + path_output + 'aggregato.csv')
     
     return (path_to_data + path_output)
