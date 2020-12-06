@@ -171,14 +171,13 @@ def mergeDati(df_coef_res, df_pdr, df_anagrafica_osservatori, df_wkr):
     print('computed aggregato station societa profilo trattamento')
     
     return df_pp_pdr_aggr_grafico, df_pp_pdr_aggr_station_tipo_tratt, df_pp_pdr_aggr_station_societa_profilo_tratt
-	
-def main(start_date, end_date, tipo_calcolo, path_anagrafica_pdr, path_anagrafica_pdr2, path_anagrafica_osservatori, path_wkr, path_output):
-	import pandas as pd
-	from datetime import datetime as dt
-	from datetime import timedelta, datetime
-	import calendar as cl
-	import numpy as np
 
+def main(start_date, end_date, tipo_calcolo, path_anagrafica_pdr, path_anagrafica_pdr2, path_anagrafica_osservatori, path_wkr, path_output):
+    import pandas as pd
+    from datetime import datetime as dt
+    from datetime import timedelta, datetime
+    import calendar as cl
+    import numpy as np
 
     #BASE PATH SU S3
     path_to_data = 's3://zus-qa-s3/'
