@@ -4,7 +4,6 @@ from datetime import timedelta, datetime
 import calendar as cl
 import numpy as np
 
-
 #ALGORITMO 1 FUNZIONI
 def read_wkr(start_date, end_date, tipo_calcolo, path_wkr):
     #LETTURA FILE WKR
@@ -174,19 +173,18 @@ def mergeDati(df_coef_res, df_pdr, df_anagrafica_osservatori, df_wkr, societa, p
     df_pp_pdr_aggr_station_societa_profilo_tratt = df_pp_pdr.groupby(['TRATTAMENTO_AGG', 'PROFILO', 'SOCIETA', 'STATION', 'DATE', 'ANNO_MESE', 'WKR']).agg(SMC=pd.NamedAgg(column='SMC', aggfunc='sum'), SMC_NO_WKR=pd.NamedAgg(column='SMC_NO_WKR', aggfunc='sum'), K=pd.NamedAgg(column='K', aggfunc='sum'), K_NO_WKR=pd.NamedAgg(column='K_NO_WKR', aggfunc='sum'), CONSUMO_ANNUO=pd.NamedAgg(column='CONSUMO_ANNUO', aggfunc='sum'), C_CONST=pd.NamedAgg(column='C_CONST', aggfunc='sum'), C_WKR=pd.NamedAgg(column='C_WKR', aggfunc='sum')).reset_index()
     df_pp_pdr_aggr_non_progr = df_pp_pdr.groupby('PDR')
     print('computed aggregato station societa profilo trattamento')
+    
     df_pp_pdr_dett = df_pp_pdr[['SOCIETA', 'TRATTAMENTO_AGG', 'TIPOLOGIA', 'PROFILO', 'ZONA_CLIMATICA', 'STATION', 'PDR', 'DATE', 'WKR', 'SMC', 'CONSUMO_ANNUO']]
     print('extract subset of fields for dettaglio')
-    df_pp_pdr_dett.loc[(df_pp_pdr_dett['TRATTAMENTO_AGG'] == 'Y') & (df_pp_pdr_dett['TIPOLOGIA'] == 'T' )].to_csv(path_output + 'dettaglio/dettaglio_' + societa + '_y_t.csv')
-    print('dettaglio y t written')
-    df_pp_pdr_dett.loc[(df_pp_pdr_dett['TRATTAMENTO_AGG'] == 'Y') & (df_pp_pdr_dett['TIPOLOGIA'] != 'T' )].to_csv(path_output + 'dettaglio/dettaglio_' + societa + '_y_c.csv')
-    print('dettaglio y c written')
-    df_pp_pdr_dett.loc[(df_pp_pdr_dett['TRATTAMENTO_AGG'] != 'Y') & (df_pp_pdr_dett['TIPOLOGIA'] == 'T' )].to_csv(path_output + 'dettaglio/dettaglio_' + societa + '_gm_t.csv')
-    print('dettaglio gm t written')
-    df_pp_pdr_dett.loc[(df_pp_pdr_dett['TRATTAMENTO_AGG'] != 'Y') & (df_pp_pdr_dett['TIPOLOGIA'] != 'T' )].to_csv(path_output + 'dettaglio/dettaglio_' + societa + '_gm_c.csv')
-    print('dettaglio gm c written')
+    #df_pp_pdr_dett.loc[df_pp_pdr_dett['TRATTAMENTO_AGG'] == 'Y'].to_csv(path_output + 'dettaglio/dettaglio_' + societa + '_y.csv')
+    print('dettaglio y written: ' + df_pp_pdr_dett.loc[df_pp_pdr_dett['TRATTAMENTO_AGG'] == 'Y']['PDR'].count().astype(str))
+    #df_pp_pdr_dett.loc[df_pp_pdr_dett['TRATTAMENTO_AGG'] != 'Y'].to_csv(path_output + 'dettaglio/dettaglio_' + societa + '_gm.csv')
+    print('dettaglio gm written: ' + df_pp_pdr_dett.loc[(df_pp_pdr_dett['TRATTAMENTO_AGG'] != 'Y')]['PDR'].count().astype(str))
+    df_pp_pdr_checks = df_pp_pdr_dett.loc[(df_pp_pdr_dett['SMC'].isnull()) | (df_pp_pdr_dett['WKR'].isnull())]
+    print('checks computed: wkr null ' +  df_pp_pdr_dett.loc[df_pp_pdr_dett['SMC'].isnull()]['PDR'].count().astype(str) + ' smc null ' + df_pp_pdr_dett.loc[df_pp_pdr_dett['WKR'].isnull()]['PDR'].count().astype(str))
     
-    return df_pp_pdr_aggr_societa_tipo_tratt, df_pp_pdr_aggr_station_tipo_tratt, df_pp_pdr_aggr_station_societa_profilo_tratt
-	
+    return df_pp_pdr_aggr_societa_tipo_tratt, df_pp_pdr_aggr_station_tipo_tratt, df_pp_pdr_aggr_station_societa_profilo_tratt, df_pp_pdr_checks
+
 def main(start_date, end_date, tipo_calcolo, path_anagrafica_pdr, path_anagrafica_pdr2, path_anagrafica_osservatori, path_wkr, path_output):
 
 
@@ -307,20 +305,23 @@ def main(start_date, end_date, tipo_calcolo, path_anagrafica_pdr, path_anagrafic
                 df_pp_pdr_aggr_station_societa_profilo_tratt_month_ee = df_pp_pdr_aggr_station_societa_profilo_tratt_month_ee.append(df_pp_pdr_aggr_station_societa_profilo_tratt_month_ee_tmp)
             i = i+1
         print('fine calcolo split')"""
-        df_pp_pdr_aggr_month_ee, df_pp_pdr_aggr_station_tipo_tratt_month_ee, df_pp_pdr_aggr_station_societa_profilo_tratt_month_ee = mergeDati(df_coef_month, df_pdr_month_ee, df_anagrafica_osservatori, df_wkr, 'ee', path_to_data + path_output)
+        df_pp_pdr_aggr_month_ee, df_pp_pdr_aggr_station_tipo_tratt_month_ee, df_pp_pdr_aggr_station_societa_profilo_tratt_month_ee, df_pp_pdr_checks_ee = mergeDati(df_coef_month, df_pdr_month_ee, df_anagrafica_osservatori, df_wkr, 'ee', path_to_data + path_output)
         print('computed edison energia')
-        df_pp_pdr_aggr_month_sg, df_pp_pdr_aggr_station_tipo_tratt_month_sg, df_pp_pdr_aggr_station_societa_profilo_tratt_month_sg = mergeDati(df_coef_month, df_pdr_month_sg, df_anagrafica_osservatori, df_wkr, 'sg', path_to_data + path_output)
+        df_pp_pdr_aggr_month_sg, df_pp_pdr_aggr_station_tipo_tratt_month_sg, df_pp_pdr_aggr_station_societa_profilo_tratt_month_sg, df_pp_pdr_checks_sg = mergeDati(df_coef_month, df_pdr_month_sg, df_anagrafica_osservatori, df_wkr, 'sg', path_to_data + path_output)
         print('computed societa gruppo')
-        df_pp_pdr_aggr_month_gr, df_pp_pdr_aggr_station_tipo_tratt_month_gr, df_pp_pdr_aggr_station_societa_profilo_tratt_month_gr = mergeDati(df_coef_month, df_pdr_month_gr, df_anagrafica_osservatori, df_wkr, 'gr', path_to_data + path_output)
+        df_pp_pdr_aggr_month_gr, df_pp_pdr_aggr_station_tipo_tratt_month_gr, df_pp_pdr_aggr_station_societa_profilo_tratt_month_gr, df_pp_pdr_checks_gr = mergeDati(df_coef_month, df_pdr_month_gr, df_anagrafica_osservatori, df_wkr, 'gr', path_to_data + path_output)
         print('computed grossisti')
         if k==1:
             df_pp_pdr_aggr  = df_pp_pdr_aggr_month_ee.append(df_pp_pdr_aggr_month_sg).append(df_pp_pdr_aggr_month_gr)
             df_pp_pdr_aggr_station_tipo_tratt = df_pp_pdr_aggr_station_tipo_tratt_month_ee.append(df_pp_pdr_aggr_station_tipo_tratt_month_sg).append(df_pp_pdr_aggr_station_tipo_tratt_month_gr)
             df_pp_pdr_aggr_station_societa_profilo_tratt = df_pp_pdr_aggr_station_societa_profilo_tratt_month_ee.append(df_pp_pdr_aggr_station_societa_profilo_tratt_month_sg).append(df_pp_pdr_aggr_station_societa_profilo_tratt_month_gr)
+            df_pp_pdr_checks = df_pp_pdr_checks_ee.append(df_pp_pdr_checks_sg).append(df_pp_pdr_checks_gr)
         else:
             df_pp_pdr_aggr = df_pp_pdr_aggr.append(df_pp_pdr_aggr_month_ee).append(df_pp_pdr_aggr_month_sg).append(df_pp_pdr_aggr_month_gr)
             df_pp_pdr_aggr_station_tipo_tratt = df_pp_pdr_aggr_station_tipo_tratt.append(df_pp_pdr_aggr_station_tipo_tratt_month_ee).append(df_pp_pdr_aggr_station_tipo_tratt_month_sg).append(df_pp_pdr_aggr_station_tipo_tratt_month_gr)
             df_pp_pdr_aggr_station_societa_profilo_tratt = df_pp_pdr_aggr_station_societa_profilo_tratt.append(df_pp_pdr_aggr_station_societa_profilo_tratt_month_ee).append(df_pp_pdr_aggr_station_societa_profilo_tratt_month_sg).append(df_pp_pdr_aggr_station_societa_profilo_tratt_month_gr)
+            df_pp_pdr_checks = df_pp_pdr_checks.append(df_pp_pdr_checks_ee).append(df_pp_pdr_checks_sg).append(df_pp_pdr_checks_gr)
+
         k=k+1
         
     print('computation ended')
@@ -330,4 +331,6 @@ def main(start_date, end_date, tipo_calcolo, path_anagrafica_pdr, path_anagrafic
     print('aggregato_station_tipo_tratt written')
     df_pp_pdr_aggr_station_societa_profilo_tratt.to_csv(path_to_data + path_output + 'aggregato_station_societa_profilo_tratt.csv')
     print('aggregato_station_societa_profilo_tratt written')
+    df_pp_pdr_checks.to_csv(path_to_data + path_output + 'dettaglio_anomalie.csv')
+    print('dettaglio anomalie written')
     return (path_to_data + path_output)
