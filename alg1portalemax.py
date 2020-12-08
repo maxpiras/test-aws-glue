@@ -174,13 +174,15 @@ def mergeDati(df_coef_res, df_pdr, df_anagrafica_osservatori, df_wkr, societa, p
     df_pp_pdr_aggr_station_societa_profilo_tratt = df_pp_pdr.groupby(['TRATTAMENTO_AGG', 'PROFILO', 'SOCIETA', 'STATION', 'DATE', 'ANNO_MESE', 'WKR']).agg(SMC=pd.NamedAgg(column='SMC', aggfunc='sum'), SMC_NO_WKR=pd.NamedAgg(column='SMC_NO_WKR', aggfunc='sum'), K=pd.NamedAgg(column='K', aggfunc='sum'), K_NO_WKR=pd.NamedAgg(column='K_NO_WKR', aggfunc='sum'), CONSUMO_ANNUO=pd.NamedAgg(column='CONSUMO_ANNUO', aggfunc='sum'), C_CONST=pd.NamedAgg(column='C_CONST', aggfunc='sum'), C_WKR=pd.NamedAgg(column='C_WKR', aggfunc='sum')).reset_index()
     df_pp_pdr_aggr_non_progr = df_pp_pdr.groupby('PDR')
     print('computed aggregato station societa profilo trattamento')
-    df_pp_pdr.loc[(df_pp_pdr['TRATTAMENTO_AGG'] == 'Y') & (df_pp_pdr['TIPOLOGIA'] == 'T' )].to_csv(path_output + 'dettaglio/dettaglio_' + societa + '_y_t.csv')
+    df_pp_pdr_dett = df_pp_pdr[['SOCIETA', 'TRATTAMENTO_AGG', 'TIPOLOGIA', 'PROFILO', 'ZONA_CLIMATICA', 'STATION', 'PDR', 'DATE', 'WKR', 'SMC', 'CONSUMO_ANNUO']]
+    print('extract subset of fields for dettaglio')
+    df_pp_pdr_dett.loc[(df_pp_pdr_dett['TRATTAMENTO_AGG'] == 'Y') & (df_pp_pdr_dett['TIPOLOGIA'] == 'T' )].to_csv(path_output + 'dettaglio/dettaglio_' + societa + '_y_t.csv')
     print('dettaglio y t written')
-    df_pp_pdr.loc[(df_pp_pdr['TRATTAMENTO_AGG'] == 'Y') & (df_pp_pdr['TIPOLOGIA'] != 'T' )].to_csv(path_output + 'dettaglio/dettaglio_' + societa + '_y_c.csv')
+    df_pp_pdr_dett.loc[(df_pp_pdr_dett['TRATTAMENTO_AGG'] == 'Y') & (df_pp_pdr_dett['TIPOLOGIA'] != 'T' )].to_csv(path_output + 'dettaglio/dettaglio_' + societa + '_y_c.csv')
     print('dettaglio y c written')
-    df_pp_pdr.loc[(df_pp_pdr['TRATTAMENTO_AGG'] != 'Y') & (df_pp_pdr['TIPOLOGIA'] == 'T' )].to_csv(path_output + 'dettaglio/dettaglio_' + societa + '_gm_t.csv')
+    df_pp_pdr_dett.loc[(df_pp_pdr_dett['TRATTAMENTO_AGG'] != 'Y') & (df_pp_pdr_dett['TIPOLOGIA'] == 'T' )].to_csv(path_output + 'dettaglio/dettaglio_' + societa + '_gm_t.csv')
     print('dettaglio gm t written')
-    df_pp_pdr.loc[(df_pp_pdr['TRATTAMENTO_AGG'] != 'Y') & (df_pp_pdr['TIPOLOGIA'] != 'T' )].to_csv(path_output + 'dettaglio/dettaglio_' + societa + '_gm_c.csv')
+    df_pp_pdr_dett.loc[(df_pp_pdr_dett['TRATTAMENTO_AGG'] != 'Y') & (df_pp_pdr_dett['TIPOLOGIA'] != 'T' )].to_csv(path_output + 'dettaglio/dettaglio_' + societa + '_gm_c.csv')
     print('dettaglio gm c written')
     
     return df_pp_pdr_aggr_societa_tipo_tratt, df_pp_pdr_aggr_station_tipo_tratt, df_pp_pdr_aggr_station_societa_profilo_tratt
