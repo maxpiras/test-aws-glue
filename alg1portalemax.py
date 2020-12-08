@@ -4,6 +4,7 @@ from datetime import timedelta, datetime
 import calendar as cl
 import numpy as np
 
+
 #ALGORITMO 1 FUNZIONI
 def read_wkr(start_date, end_date, tipo_calcolo, path_wkr):
     #LETTURA FILE WKR
@@ -152,7 +153,7 @@ def insertDay(df_pdr):
     df_pdr['STATION'] = df_pdr['STATION'].astype(str)
     return(df_pdr)"""
 
-def mergeDati(df_coef_res, df_pdr, df_anagrafica_osservatori, df_wkr):
+def mergeDati(df_coef_res, df_pdr, df_anagrafica_osservatori, df_wkr, societa, path_output):
     df_pp_pdr = df_pdr.merge(df_anagrafica_osservatori,on='STATION',how='left')
     print('merge pdr zona climatica')
     df_pp_pdr = df_coef_res.merge(df_pp_pdr,on=['PROFILO'])
@@ -166,19 +167,27 @@ def mergeDati(df_coef_res, df_pdr, df_anagrafica_osservatori, df_wkr):
     df_pp_pdr = df_pp_pdr.assign(SMC=df_pp_pdr['K']*df_pp_pdr['CONSUMO_ANNUO']/100)
     df_pp_pdr = df_pp_pdr.assign(SMC_NO_WKR=df_pp_pdr['K_NO_WKR']*df_pp_pdr['CONSUMO_ANNUO']/100)
     print('compute k+smc')
-    df_pp_pdr_aggr_grafico = df_pp_pdr.groupby(['SOCIETA', 'TRATTAMENTO_AGG', 'TIPOLOGIA', 'DATE', 'WKR']).agg(SMC=pd.NamedAgg(column='SMC', aggfunc='sum'), SMC_NO_WKR=pd.NamedAgg(column='SMC_NO_WKR', aggfunc='sum'), K=pd.NamedAgg(column='K', aggfunc='sum'), K_NO_WKR=pd.NamedAgg(column='K_NO_WKR', aggfunc='sum'), CONSUMO_ANNUO=pd.NamedAgg(column='CONSUMO_ANNUO', aggfunc='sum'), C_CONST=pd.NamedAgg(column='C_CONST', aggfunc='sum'), C_WKR=pd.NamedAgg(column='C_WKR', aggfunc='sum')).reset_index()
-    df_pp_pdr_aggr_grafico['ANNO_MESE'] = df_pp_pdr_aggr_grafico['DATE'].astype(str).str.slice(start=0, stop=7)
+    df_pp_pdr_aggr_societa_tipo_tratt = df_pp_pdr.groupby(['SOCIETA', 'TRATTAMENTO_AGG', 'TIPOLOGIA', 'DATE', 'ANNO_MESE', 'WKR']).agg(SMC=pd.NamedAgg(column='SMC', aggfunc='sum'), SMC_NO_WKR=pd.NamedAgg(column='SMC_NO_WKR', aggfunc='sum'), K=pd.NamedAgg(column='K', aggfunc='sum'), K_NO_WKR=pd.NamedAgg(column='K_NO_WKR', aggfunc='sum'), CONSUMO_ANNUO=pd.NamedAgg(column='CONSUMO_ANNUO', aggfunc='sum'), C_CONST=pd.NamedAgg(column='C_CONST', aggfunc='sum'), C_WKR=pd.NamedAgg(column='C_WKR', aggfunc='sum')).reset_index()
     print('computed aggregato grafico')
-    df_pp_pdr_aggr_station_tipo_tratt = df_pp_pdr.groupby(['TRATTAMENTO_AGG', 'TIPOLOGIA', 'STATION', 'DATE']).agg(SMC=pd.NamedAgg(column='SMC', aggfunc='sum'), SMC_NO_WKR=pd.NamedAgg(column='SMC_NO_WKR', aggfunc='sum'), K=pd.NamedAgg(column='K', aggfunc='sum'), K_NO_WKR=pd.NamedAgg(column='K_NO_WKR', aggfunc='sum'), CONSUMO_ANNUO=pd.NamedAgg(column='CONSUMO_ANNUO', aggfunc='sum'), C_CONST=pd.NamedAgg(column='C_CONST', aggfunc='sum'), C_WKR=pd.NamedAgg(column='C_WKR', aggfunc='sum')).reset_index()
-    df_pp_pdr_aggr_station_tipo_tratt['ANNO_MESE'] = df_pp_pdr_aggr_station_tipo_tratt['DATE'].astype(str).str.slice(start=0, stop=7)
+    df_pp_pdr_aggr_station_tipo_tratt = df_pp_pdr.groupby(['TRATTAMENTO_AGG', 'TIPOLOGIA', 'STATION', 'DATE', 'ANNO_MESE', 'WKR']).agg(SMC=pd.NamedAgg(column='SMC', aggfunc='sum'), SMC_NO_WKR=pd.NamedAgg(column='SMC_NO_WKR', aggfunc='sum'), K=pd.NamedAgg(column='K', aggfunc='sum'), K_NO_WKR=pd.NamedAgg(column='K_NO_WKR', aggfunc='sum'), CONSUMO_ANNUO=pd.NamedAgg(column='CONSUMO_ANNUO', aggfunc='sum'), C_CONST=pd.NamedAgg(column='C_CONST', aggfunc='sum'), C_WKR=pd.NamedAgg(column='C_WKR', aggfunc='sum')).reset_index()
     print('computed aggregato station tipologia trattamento')
-    df_pp_pdr_aggr_station_societa_profilo_tratt = df_pp_pdr.groupby(['TRATTAMENTO_AGG', 'PROFILO', 'SOCIETA', 'STATION', 'DATE']).agg(SMC=pd.NamedAgg(column='SMC', aggfunc='sum'), SMC_NO_WKR=pd.NamedAgg(column='SMC_NO_WKR', aggfunc='sum'), K=pd.NamedAgg(column='K', aggfunc='sum'), K_NO_WKR=pd.NamedAgg(column='K_NO_WKR', aggfunc='sum'), CONSUMO_ANNUO=pd.NamedAgg(column='CONSUMO_ANNUO', aggfunc='sum'), C_CONST=pd.NamedAgg(column='C_CONST', aggfunc='sum'), C_WKR=pd.NamedAgg(column='C_WKR', aggfunc='sum')).reset_index()
-    df_pp_pdr_aggr_station_societa_profilo_tratt['ANNO_MESE'] = df_pp_pdr_aggr_station_societa_profilo_tratt['DATE'].astype(str).str.slice(start=0, stop=7)
+    df_pp_pdr_aggr_station_societa_profilo_tratt = df_pp_pdr.groupby(['TRATTAMENTO_AGG', 'PROFILO', 'SOCIETA', 'STATION', 'DATE', 'ANNO_MESE', 'WKR']).agg(SMC=pd.NamedAgg(column='SMC', aggfunc='sum'), SMC_NO_WKR=pd.NamedAgg(column='SMC_NO_WKR', aggfunc='sum'), K=pd.NamedAgg(column='K', aggfunc='sum'), K_NO_WKR=pd.NamedAgg(column='K_NO_WKR', aggfunc='sum'), CONSUMO_ANNUO=pd.NamedAgg(column='CONSUMO_ANNUO', aggfunc='sum'), C_CONST=pd.NamedAgg(column='C_CONST', aggfunc='sum'), C_WKR=pd.NamedAgg(column='C_WKR', aggfunc='sum')).reset_index()
+    df_pp_pdr_aggr_non_progr = df_pp_pdr.groupby('PDR')
     print('computed aggregato station societa profilo trattamento')
+    df_pp_pdr.loc[(df_pp_pdr['TRATTAMENTO_AGG'] == 'Y') & (df_pp_pdr['TIPOLOGIA'] == 'T' )].to_csv(path_output + 'dettaglio/dettaglio_' + societa + '_y_t.csv')
+    print('dettaglio y t written')
+    df_pp_pdr.loc[(df_pp_pdr['TRATTAMENTO_AGG'] == 'Y') & (df_pp_pdr['TIPOLOGIA'] != 'T' )].to_csv(path_output + 'dettaglio/dettaglio_' + societa + '_y_c.csv')
+    print('dettaglio y c written')
+    df_pp_pdr.loc[(df_pp_pdr['TRATTAMENTO_AGG'] != 'Y') & (df_pp_pdr['TIPOLOGIA'] == 'T' )].to_csv(path_output + 'dettaglio/dettaglio_' + societa + '_gm_t.csv')
+    print('dettaglio gm t written')
+    df_pp_pdr.loc[(df_pp_pdr['TRATTAMENTO_AGG'] != 'Y') & (df_pp_pdr['TIPOLOGIA'] != 'T' )].to_csv(path_output + 'dettaglio/dettaglio_' + societa + '_gm_c.csv')
+    print('dettaglio gm c written')
     
-    return df_pp_pdr_aggr_grafico, df_pp_pdr_aggr_station_tipo_tratt, df_pp_pdr_aggr_station_societa_profilo_tratt
-
+    return df_pp_pdr_aggr_societa_tipo_tratt, df_pp_pdr_aggr_station_tipo_tratt, df_pp_pdr_aggr_station_societa_profilo_tratt
+	
 def main(start_date, end_date, tipo_calcolo, path_anagrafica_pdr, path_anagrafica_pdr2, path_anagrafica_osservatori, path_wkr, path_output):
+
+
     #BASE PATH SU S3
     path_to_data = 's3://zus-qa-s3/'
     
@@ -197,7 +206,8 @@ def main(start_date, end_date, tipo_calcolo, path_anagrafica_pdr, path_anagrafic
     df_coef_res['DATE'] = df_coef_res['DATE'].str.replace('-','')
     df_coef_res['DATE']=pd.to_datetime(df_coef_res['DATE'],format='%Y%m%d')
     df_coef_res = df_coef_res.loc[(df_coef_res['DATE'] >= start_date) & (df_coef_res['DATE'] <= end_date)]
-    df_coef_res = df_coef_res[['PROFILO', 'DATE', 'C_WKR', 'C_CONST', 'TIPOLOGIA']]
+    df_coef_res['ANNO_MESE'] = df_coef_res['DATE'].astype(str).str.slice(start=0, stop=7)
+    df_coef_res = df_coef_res[['PROFILO', 'DATE', 'ANNO_MESE', 'C_WKR', 'C_CONST', 'TIPOLOGIA']]
     
     #ESTRAZIONE ANNO MESE SUI PROGILI ELABORATI
     #df_coef_res['year'] = pd.DatetimeIndex(df_coef_res['DATE']).year
@@ -295,11 +305,11 @@ def main(start_date, end_date, tipo_calcolo, path_anagrafica_pdr, path_anagrafic
                 df_pp_pdr_aggr_station_societa_profilo_tratt_month_ee = df_pp_pdr_aggr_station_societa_profilo_tratt_month_ee.append(df_pp_pdr_aggr_station_societa_profilo_tratt_month_ee_tmp)
             i = i+1
         print('fine calcolo split')"""
-        df_pp_pdr_aggr_month_ee, df_pp_pdr_aggr_station_tipo_tratt_month_ee, df_pp_pdr_aggr_station_societa_profilo_tratt_month_ee = mergeDati(df_coef_month, df_pdr_month_ee, df_anagrafica_osservatori, df_wkr)
+        df_pp_pdr_aggr_month_ee, df_pp_pdr_aggr_station_tipo_tratt_month_ee, df_pp_pdr_aggr_station_societa_profilo_tratt_month_ee = mergeDati(df_coef_month, df_pdr_month_ee, df_anagrafica_osservatori, df_wkr, 'ee', path_to_data + path_output)
         print('computed edison energia')
-        df_pp_pdr_aggr_month_sg, df_pp_pdr_aggr_station_tipo_tratt_month_sg, df_pp_pdr_aggr_station_societa_profilo_tratt_month_sg = mergeDati(df_coef_month, df_pdr_month_sg, df_anagrafica_osservatori, df_wkr)
+        df_pp_pdr_aggr_month_sg, df_pp_pdr_aggr_station_tipo_tratt_month_sg, df_pp_pdr_aggr_station_societa_profilo_tratt_month_sg = mergeDati(df_coef_month, df_pdr_month_sg, df_anagrafica_osservatori, df_wkr, 'sg', path_to_data + path_output)
         print('computed societa gruppo')
-        df_pp_pdr_aggr_month_gr, df_pp_pdr_aggr_station_tipo_tratt_month_gr, df_pp_pdr_aggr_station_societa_profilo_tratt_month_gr = mergeDati(df_coef_month, df_pdr_month_gr, df_anagrafica_osservatori, df_wkr)
+        df_pp_pdr_aggr_month_gr, df_pp_pdr_aggr_station_tipo_tratt_month_gr, df_pp_pdr_aggr_station_societa_profilo_tratt_month_gr = mergeDati(df_coef_month, df_pdr_month_gr, df_anagrafica_osservatori, df_wkr, 'gr', path_to_data + path_output)
         print('computed grossisti')
         if k==1:
             df_pp_pdr_aggr  = df_pp_pdr_aggr_month_ee.append(df_pp_pdr_aggr_month_sg).append(df_pp_pdr_aggr_month_gr)
@@ -312,7 +322,7 @@ def main(start_date, end_date, tipo_calcolo, path_anagrafica_pdr, path_anagrafic
         k=k+1
         
     print('computation ended')
-    df_pp_pdr_aggr.to_csv(path_to_data + path_output + 'aggregato_grafico.csv')
+    df_pp_pdr_aggr.to_csv(path_to_data + path_output + 'aggregato_societa_tipo_tratt.csv')
     print('aggregato_grafico written')
     df_pp_pdr_aggr_station_tipo_tratt.to_csv(path_to_data + path_output + 'aggregato_station_tipo_tratt.csv')
     print('aggregato_station_tipo_tratt written')
