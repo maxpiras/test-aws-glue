@@ -176,9 +176,9 @@ def mergeDati(df_coef_res, df_pdr, df_anagrafica_osservatori, df_wkr, societa, p
     
     df_pp_pdr_dett = df_pp_pdr[['SOCIETA', 'TRATTAMENTO_AGG', 'TIPOLOGIA', 'PROFILO', 'ZONA_CLIMATICA', 'STATION', 'PDR', 'DATE', 'WKR', 'SMC', 'CONSUMO_ANNUO']]
     print('extract subset of fields for dettaglio')
-    #df_pp_pdr_dett.loc[df_pp_pdr_dett['TRATTAMENTO_AGG'] == 'Y'].to_csv(path_output + 'dettaglio/dettaglio_' + societa + '_y.csv')
+    df_pp_pdr_dett.loc[df_pp_pdr_dett['TRATTAMENTO_AGG'] == 'Y'].to_csv(path_output + 'dettaglio/dettaglio_' + societa + '_y.csv')
     print('dettaglio y written: ' + df_pp_pdr_dett.loc[df_pp_pdr_dett['TRATTAMENTO_AGG'] == 'Y']['PDR'].count().astype(str))
-    #df_pp_pdr_dett.loc[df_pp_pdr_dett['TRATTAMENTO_AGG'] != 'Y'].to_csv(path_output + 'dettaglio/dettaglio_' + societa + '_gm.csv')
+    df_pp_pdr_dett.loc[df_pp_pdr_dett['TRATTAMENTO_AGG'] != 'Y'].to_csv(path_output + 'dettaglio/dettaglio_' + societa + '_gm.csv')
     print('dettaglio gm written: ' + df_pp_pdr_dett.loc[(df_pp_pdr_dett['TRATTAMENTO_AGG'] != 'Y')]['PDR'].count().astype(str))
     df_pp_pdr_checks = df_pp_pdr_dett.loc[(df_pp_pdr_dett['SMC'].isnull()) | (df_pp_pdr_dett['WKR'].isnull())]
     print('checks computed: wkr null ' +  df_pp_pdr_dett.loc[df_pp_pdr_dett['SMC'].isnull()]['PDR'].count().astype(str) + ' smc null ' + df_pp_pdr_dett.loc[df_pp_pdr_dett['WKR'].isnull()]['PDR'].count().astype(str))
