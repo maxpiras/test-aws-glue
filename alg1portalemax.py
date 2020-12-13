@@ -209,7 +209,10 @@ def main(start_date, end_date, tipo_calcolo, path_anagrafica_pdr, path_anagrafic
     df_anagrafica_osservatori = read_osservatori(path_to_data + path_anagrafica_osservatori)
     print('read from ' + path_to_data + path_anagrafica_osservatori)
 
-    for i, j in zip(START_COUNT, END_COUNT):
+	columns=['START_DATE', 'END_DATE', 'TIPO_CALCOLO', 'CONSUMO_ANNUO_ANOMALIE', 'PATH_ANAGRAFICA_PDR', 'PATH_ANAGRAFICA_OSSERVATORI', 'PATH_WKR']
+    df_metadata = pd.DataFrame([[start_date, end_date, tipo_calcolo, 0, path_anagrafica_pdr, path_anagrafica_osservatori, path_wkr]], columns=columns)
+	
+	for i, j in zip(START_COUNT, END_COUNT):
         print(i, j)
         df_coef_month = df_profili.loc[(df_profili['DATE'] >= i) & (df_profili['DATE'] <= j)]
         anno_mese = df_coef_month['ANNO_MESE'].unique()[0].replace("-", "").replace("/","")
@@ -246,7 +249,11 @@ def main(start_date, end_date, tipo_calcolo, path_anagrafica_pdr, path_anagrafic
         df_pp_pdr_checks['TOT_CONSUMO_ANNUO'] = df_pp_pdr_checks.groupby(['PDR']).agg(TOT_CONSUMO_ANNUO=pd.NamedAgg(column='CONSUMO_ANNUO', aggfunc='mean')).reset_index()['TOT_CONSUMO_ANNUO'].sum()
         df_pp_pdr_checks['TOT_PDR'] = len(df_pp_pdr_checks['PDR'].unique())
         df_pp_pdr_kpi_checks = df_pp_pdr_checks[['TOT_PDR', 'TOT_CONSUMO_ANNUO']].drop_duplicates()
-        df_pp_pdr_kpi_checks.to_csv(path_to_data + path_output  + anno_mese + "/" +  'anomalie_aggregato.csv')
+	    df_metadata['CONSUMO_ANNUO_ANOMALIE'] = df_metadata['CONSUMO_ANNUO_ANOMALIE'] + df_pp_pdr_checks['TOT_CONSUMO_ANNUO']
+        #df_pp_pdr_kpi_checks.to_csv(path_to_data + path_output  + anno_mese + "/" +  'anomalie_aggregato.csv')
         print('dettaglio anomalie written')
+        
+    df_metadata.to_csv(path_to_data + path_output  + anno_mese + "/" +  'metadati.csv')
     print('all months have been computed')
+
     return (path_to_data + path_output)
