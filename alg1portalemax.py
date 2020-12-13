@@ -4,7 +4,6 @@ from datetime import timedelta, datetime
 import calendar as cl
 import numpy as np
 
-
 #ALGORITMO 1 FUNZIONI
 
 def read_profili(path_to_data):
@@ -144,7 +143,7 @@ def comp(dateS, dateE, NUM_M):
     return StartDate, EndDate
 
 def mergeDati(df_profili, df_pdr, df_anagrafica_osservatori, df_wkr, anno_mese, societa, path_output):
-    print('computation for ' + anno_mese + ' started')
+    print('computation for societa ' + societa + ' ' + anno_mese + ' started')
     df_pp_pdr = df_pdr.merge(df_anagrafica_osservatori,on='STATION',how='left')
     print('merge pdr zona climatica')
     df_pp_pdr = df_profili.merge(df_pp_pdr,on=['PROFILO'])
@@ -168,7 +167,7 @@ def mergeDati(df_profili, df_pdr, df_anagrafica_osservatori, df_wkr, anno_mese, 
     
     df_pp_pdr_dett = df_pp_pdr[['SOCIETA', 'PIVA', 'TRATTAMENTO', 'TIPOLOGIA', 'PROFILO', 'ZONA_CLIMATICA', 'STATION', 'PDR', 'DATE', 'WKR', 'SMC', 'CONSUMO_ANNUO']]
     print('extract subset of fields for dettaglio')
-    df_pp_pdr_dett.loc[df_pp_pdr_dett['TRATTAMENTO'] == 'Y'].to_csv(path_output + anno_mese + '/' + 'dettaglio/dettaglio_' + societa + '_y.csv')
+    #df_pp_pdr_dett.loc[df_pp_pdr_dett['TRATTAMENTO'] == 'Y'].to_csv(path_output + anno_mese + '/' + 'dettaglio/dettaglio_' + societa + '_y.csv')
     print('dettaglio y written: ' + df_pp_pdr_dett.loc[df_pp_pdr_dett['TRATTAMENTO'] == 'Y']['PDR'].count().astype(str))
     df_pp_pdr_dett.loc[df_pp_pdr_dett['TRATTAMENTO'] != 'Y'].to_csv(path_output + anno_mese + '/' + 'dettaglio/dettaglio_' + societa + '_gm.csv')
     print('dettaglio gm written: ' + df_pp_pdr_dett.loc[(df_pp_pdr_dett['TRATTAMENTO'] != 'Y')]['PDR'].count().astype(str))
@@ -177,6 +176,7 @@ def mergeDati(df_profili, df_pdr, df_anagrafica_osservatori, df_wkr, anno_mese, 
     
     return df_pp_pdr_aggr_societa_tipo_tratt, df_pp_pdr_aggr_station_tipo_tratt, df_pp_pdr_aggr_station_societa_profilo_tratt, df_pp_pdr_checks
 	
+
 def main(start_date, end_date, tipo_calcolo, path_anagrafica_pdr, path_anagrafica_pdr2, path_anagrafica_osservatori, path_wkr, path_output):
 
 
@@ -220,7 +220,7 @@ def main(start_date, end_date, tipo_calcolo, path_anagrafica_pdr, path_anagrafic
         df_pdr_month = df_pdr.loc[(df_pdr['DATA_FINE'] >= i) & (df_pdr['DATA_INIZIO'] <= j)]
         if df_pdr_month.empty:
             df_pdr_month = df_pdr2.loc[(df_pdr2['DATA_FINE'] >= i) & (df_pdr2['DATA_INIZIO'] <= j)]
-            print('using anagrafica pdr2 for ', k, i, j)
+            print('using anagrafica pdr2 for ', i, j)
         df_pdr_month_ee = df_pdr_month.loc[df_pdr_month['SOCIETA'] == 'edison_energia']
         print('subsetting edison energia')
         df_pdr_month_sg = df_pdr_month.loc[df_pdr_month['SOCIETA'] == 'societa_gruppo']
