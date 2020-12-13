@@ -208,11 +208,11 @@ def main(start_date, end_date, tipo_calcolo, path_anagrafica_pdr, path_anagrafic
     #LETTURA ANAGRAFICA OSSERVATORI
     df_anagrafica_osservatori = read_osservatori(path_to_data + path_anagrafica_osservatori)
     print('read from ' + path_to_data + path_anagrafica_osservatori)
+    
+    columns=['START_DATE', 'END_DATE', 'TIPO_CALCOLO', 'CONSUMO_ANNUO_ANOMALIE', 'PATH_ANAGRAFICA_PDR', 'PATH_ANAGRAFICA_OSSERVATORI', 'PATH_WKR']
+    df_metadata = pd.DataFrame([[start_date, end_date, tipo_calcolo, 0.0, path_anagrafica_pdr, path_anagrafica_osservatori, path_wkr]], columns=columns)
 
-	columns=['START_DATE', 'END_DATE', 'TIPO_CALCOLO', 'CONSUMO_ANNUO_ANOMALIE', 'PATH_ANAGRAFICA_PDR', 'PATH_ANAGRAFICA_OSSERVATORI', 'PATH_WKR']
-    df_metadata = pd.DataFrame([[start_date, end_date, tipo_calcolo, 0, path_anagrafica_pdr, path_anagrafica_osservatori, path_wkr]], columns=columns)
-	
-	for i, j in zip(START_COUNT, END_COUNT):
+    for i, j in zip(START_COUNT, END_COUNT):
         print(i, j)
         df_coef_month = df_profili.loc[(df_profili['DATE'] >= i) & (df_profili['DATE'] <= j)]
         anno_mese = df_coef_month['ANNO_MESE'].unique()[0].replace("-", "").replace("/","")
@@ -221,12 +221,10 @@ def main(start_date, end_date, tipo_calcolo, path_anagrafica_pdr, path_anagrafic
         if df_pdr_month.empty:
             df_pdr_month = df_pdr2.loc[(df_pdr2['DATA_FINE'] >= i) & (df_pdr2['DATA_INIZIO'] <= j)]
             print('using anagrafica pdr2 for ', i, j)
+        
         df_pdr_month_ee = df_pdr_month.loc[df_pdr_month['SOCIETA'] == 'edison_energia']
-        print('subsetting edison energia')
         df_pdr_month_sg = df_pdr_month.loc[df_pdr_month['SOCIETA'] == 'societa_gruppo']
-        print('subsetting societa gruppo')
         df_pdr_month_gr = df_pdr_month.loc[df_pdr_month['SOCIETA'] == 'grossisti']
-        print('subsetting grossisti')
         
         df_pp_pdr_aggr_month_ee, df_pp_pdr_aggr_station_tipo_tratt_month_ee, df_pp_pdr_aggr_station_societa_profilo_tratt_month_ee, df_pp_pdr_checks_ee = mergeDati(df_coef_month, df_pdr_month_ee, df_anagrafica_osservatori, df_wkr, anno_mese, 'ee', path_to_data + path_output)
         print('computed edison energia')
@@ -249,11 +247,10 @@ def main(start_date, end_date, tipo_calcolo, path_anagrafica_pdr, path_anagrafic
         df_pp_pdr_checks['TOT_CONSUMO_ANNUO'] = df_pp_pdr_checks.groupby(['PDR']).agg(TOT_CONSUMO_ANNUO=pd.NamedAgg(column='CONSUMO_ANNUO', aggfunc='mean')).reset_index()['TOT_CONSUMO_ANNUO'].sum()
         df_pp_pdr_checks['TOT_PDR'] = len(df_pp_pdr_checks['PDR'].unique())
         df_pp_pdr_kpi_checks = df_pp_pdr_checks[['TOT_PDR', 'TOT_CONSUMO_ANNUO']].drop_duplicates()
-	    df_metadata['CONSUMO_ANNUO_ANOMALIE'] = df_metadata['CONSUMO_ANNUO_ANOMALIE'] + df_pp_pdr_checks['TOT_CONSUMO_ANNUO']
+        df_metadata['CONSUMO_ANNUO_ANOMALIE'] = df_metadata['CONSUMO_ANNUO_ANOMALIE'] + df_pp_pdr_checks['TOT_CONSUMO_ANNUO'].sum()
         #df_pp_pdr_kpi_checks.to_csv(path_to_data + path_output  + anno_mese + "/" +  'anomalie_aggregato.csv')
         print('dettaglio anomalie written')
         
     df_metadata.to_csv(path_to_data + path_output  + anno_mese + "/" +  'metadati.csv')
     print('all months have been computed')
-
     return (path_to_data + path_output)
