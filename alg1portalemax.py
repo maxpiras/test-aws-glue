@@ -1,3 +1,10 @@
+import pandas as pd
+from datetime import datetime as dt
+from datetime import timedelta, datetime
+import calendar as cl
+import numpy as np
+
+
 #ALGORITMO 1 FUNZIONI
 
 def read_profili(path_to_data):
