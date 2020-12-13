@@ -246,7 +246,7 @@ def main(start_date, end_date, tipo_calcolo, path_anagrafica_pdr, path_anagrafic
         df_pp_pdr_checks.to_csv(path_to_data + path_output  + anno_mese + "/" +  'anomalie_dettaglio.csv')
         df_pp_pdr_checks['TOT_CONSUMO_ANNUO'] = df_pp_pdr_checks.groupby(['PDR']).agg(TOT_CONSUMO_ANNUO=pd.NamedAgg(column='CONSUMO_ANNUO', aggfunc='mean')).reset_index()['TOT_CONSUMO_ANNUO'].sum()
         df_pp_pdr_checks['TOT_PDR'] = len(df_pp_pdr_checks['PDR'].unique())
-        df_pp_pdr_kpi_checks = df_pp_pdr_checks[['TOT_PDR', 'TOT_CONSUMO_ANNUO']].drop_duplicates()
+        #df_pp_pdr_kpi_checks = df_pp_pdr_checks[['TOT_PDR', 'TOT_CONSUMO_ANNUO']].drop_duplicates()
         df_metadata['CONSUMO_ANNUO_ANOMALIE'] = df_metadata['CONSUMO_ANNUO_ANOMALIE'] + df_pp_pdr_checks['TOT_CONSUMO_ANNUO'].sum()
         #df_pp_pdr_kpi_checks.to_csv(path_to_data + path_output  + anno_mese + "/" +  'anomalie_aggregato.csv')
         print('dettaglio anomalie written')
