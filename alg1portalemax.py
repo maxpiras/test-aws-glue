@@ -6,8 +6,8 @@ import numpy as np
 
 #ALGORITMO 1 FUNZIONI
 
-def read_profili(path_to_data):
-    df_profili = pd.read_csv(path_to_data +'preprocessato/sistema/coefficienti/external/2020/profili_elaborati.csv')
+def read_profili(path_profili, start_date, end_date):
+    df_profili = pd.read_csv(path_profili)
     df_profili.columns = df_profili.columns.str.upper()
     df_profili['TIPOLOGIA'] = df_profili['PROFILO'].str.slice(start=0, stop=1)
     df_profili['DATE'] = df_profili['DATE'].str.replace('-','')
@@ -26,7 +26,7 @@ def read_wkr(start_date, end_date, tipo_calcolo, path_wkr):
 
     #FILTRO WKR IN BASE ALLE DATE SELEZIONATE (START-END)
     df_wkr = df_wkr.loc[(df_wkr['GIORNO'] >= start_date) & (df_wkr['GIORNO'] <= end_date)]
-
+    
     #DEFINIZIONE VALORE PRIORITA' PER TIPO E ORARIO DI ARRIVO (V_WKR)
     di_tipo = {"C":1, "I":2, "P":3, "P1":4, "P2":5, "P3":6, "P4":7,"P5":8 }
     di_orario = {"WKR_18": 1, "WKR_11": 2}
@@ -174,7 +174,6 @@ def mergeDati(df_profili, df_pdr, df_anagrafica_osservatori, df_wkr, anno_mese, 
     
     return df_pp_pdr_aggr_societa_tipo_tratt, df_pp_pdr_aggr_station_tipo_tratt, df_pp_pdr_aggr_station_societa_profilo_tratt, df_pp_pdr_checks
 	
-
 def main(start_date, end_date, tipo_calcolo, path_anagrafica_pdr, path_anagrafica_pdr2, path_anagrafica_osservatori, path_wkr, path_output):
 
 
@@ -190,7 +189,7 @@ def main(start_date, end_date, tipo_calcolo, path_anagrafica_pdr, path_anagrafic
     year = start_date[:4]
     
     #LETTURA PROFILI ELABORATI
-    df_profili = read_profili(path_to_data)
+    df_profili = read_profili(path_to_data +'preprocessato/sistema/coefficienti/external/' + year + '/profili_elaborati.csv', start_date, end_date)
     print('read from ' + path_to_data +'preprocessato/sistema/coefficienti/external/' + year + '/profili_elaborati.csv')
 
     #LETTURA WKR
