@@ -167,7 +167,7 @@ def mergeDati(df_profili, df_pdr, df_anagrafica_osservatori, df_wkr, anno_mese, 
     
     df_pp_pdr_dett = df_pp_pdr[['SOCIETA', 'PIVA', 'TRATTAMENTO', 'TIPOLOGIA', 'PROFILO', 'ZONA_CLIMATICA', 'STATION', 'PDR', 'DATE', 'WKR', 'SMC', 'CONSUMO_ANNUO']]
     print('extract subset of fields for dettaglio')
-    #df_pp_pdr_dett.loc[df_pp_pdr_dett['TRATTAMENTO'] == 'Y'].to_csv(path_output + anno_mese + '/' + 'dettaglio/dettaglio_' + societa + '_y.csv')
+    df_pp_pdr_dett.loc[df_pp_pdr_dett['TRATTAMENTO'] == 'Y'].to_csv(path_output + anno_mese + '/' + 'dettaglio/dettaglio_' + societa + '_y.csv')
     print('dettaglio y written: ' + df_pp_pdr_dett.loc[df_pp_pdr_dett['TRATTAMENTO'] == 'Y']['PDR'].count().astype(str))
     df_pp_pdr_dett.loc[df_pp_pdr_dett['TRATTAMENTO'] != 'Y'].to_csv(path_output + anno_mese + '/' + 'dettaglio/dettaglio_' + societa + '_gm.csv')
     print('dettaglio gm written: ' + df_pp_pdr_dett.loc[(df_pp_pdr_dett['TRATTAMENTO'] != 'Y')]['PDR'].count().astype(str))
