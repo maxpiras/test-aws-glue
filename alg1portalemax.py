@@ -26,7 +26,6 @@ def read_wkr(start_date, end_date, tipo_calcolo, path_wkr):
 
     #FILTRO WKR IN BASE ALLE DATE SELEZIONATE (START-END)
     df_wkr = df_wkr.loc[(df_wkr['GIORNO'] >= start_date) & (df_wkr['GIORNO'] <= end_date)]
-    df_wkr.to_csv('TEST_WKR.csv')
 
     #DEFINIZIONE VALORE PRIORITA' PER TIPO E ORARIO DI ARRIVO (V_WKR)
     di_tipo = {"C":1, "I":2, "P":3, "P1":4, "P2":5, "P3":6, "P4":7,"P5":8 }
@@ -42,7 +41,6 @@ def read_wkr(start_date, end_date, tipo_calcolo, path_wkr):
     df_calendar['KEY'] = 0
     df_calendar['TIPO_1'] = '1'
     df_calendar_wkr = df_calendar.merge(df_wkr_new, on ='KEY')[['ZONA_CLIMATICA', 'GIORNO']]
-    #df_calendar_wkr.to_csv('TEST_CALENDAR.csv')
     
     df_wkr['TOP_PRIORITY'] = df_wkr.groupby(['ZONA_CLIMATICA', 'GIORNO'])['TIPO_PRIORITY'].transform('min')
     df_wkr['MAX_DATA_WKR'] = df_wkr.groupby(['ZONA_CLIMATICA', 'GIORNO', 'TIPO_PRIORITY'])['DATA_WKR'].transform('max')
